@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="WallpaperEngineClient">
+        <file>icons/icons8-wallpaper-engine-96.png</file>
+    </qresource>
+</RCC>
