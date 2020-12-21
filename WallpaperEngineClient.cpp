@@ -10,7 +10,6 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QClipboard>
-#include <QMessageBox>
 #include <Windows.h>
 #include <json.hpp>
 
@@ -99,7 +98,6 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 		nlohmann::json j = nlohmann::json::parse(configFile.readAll().constData());
 		QUrl url{ j["url"].get<std::string>().c_str() };
 
-		QMessageBox::information(this, "", url.toString());
 		if (url.isValid())
 			desktopWebEngineView.load(url);
 		else
