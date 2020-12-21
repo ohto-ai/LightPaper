@@ -10,6 +10,7 @@
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QClipboard>
+#include <QWebEngineSettings>
 #include <Windows.h>
 #include <json.hpp>
 
@@ -91,6 +92,7 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	desktopWebEngineView.move(QApplication::desktop()->pos());
 	desktopWebEngineView.resize(QApplication::desktop()->size());
 	desktopWebEngineView.showFullScreen();
+	QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
 
 	QFile configFile{ "wallpaper.json" };
 	if(configFile.open(QFile::ReadOnly))
