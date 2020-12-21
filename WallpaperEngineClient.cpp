@@ -4,7 +4,7 @@
 
 #include <fstream>
 #include <QWebEngineProfile>
-#include <QFile>
+#include <QSettings>
 #include <QFileDialog>
 #include <QMenu>
 #include <QDesktopWidget>
@@ -53,30 +53,24 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
 		{
-			QUrl url{ QFileDialog::getOpenFileName(this) };
-			if (url.isValid())
-				desktopWebEngineView.load(url);
+			loadUrl({ QFileDialog::getOpenFileName(this) });
 		});
-	
+
 	mMenu->addAction("粘贴地址", [&]
 		{
-			QUrl url{ QApplication::clipboard()->text() };
-			if (url.isValid())
-				desktopWebEngineView.load(url);
+			loadUrl({ QApplication::clipboard()->text() });
 		});
-	
+
 	mMenu->addAction("刷新壁纸", &desktopWebEngineView, &QWebEngineView::reload);
-		
+
+	auto autoRunAction = new QAction("开机启动", this);
+	mMenu->addAction(autoRunAction);
+	autoRunAction->setCheckable(true);
+	autoRunAction->setChecked(autoRun());
+	connect(autoRunAction, &QAction::toggled, &WallpaperEngineClient::setAutoRun);
+
 	mMenu->addAction("退出程序", [=]
 		{
-			QFile configFile{ "wallpaper.json" };
-			if (configFile.open(QFile::WriteOnly))
-			{
-				nlohmann::json j;
-				j["url"] = desktopWebEngineView.url().toString().toStdString();
-				configFile.write(QByteArray::fromStdString(j.dump()));
-				configFile.close();
-			}
 			qApp->quit();
 		});
 
@@ -95,18 +89,49 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
 
 	QFile configFile{ "wallpaper.json" };
-	if(configFile.open(QFile::ReadOnly))
+	if (configFile.open(QFile::ReadOnly))
 	{
-		nlohmann::json j = nlohmann::json::parse(configFile.readAll().constData());
-		QUrl url{ j["url"].get<std::string>().c_str() };
-
-		if (url.isValid())
-			desktopWebEngineView.load(url);
-		else
-			desktopWebEngineView.load(QUrl("https://github.com/thatboy-echo"));
+		if (!loadUrl({ nlohmann::json::parse(configFile.readAll().constData())["url"].get<std::string>().c_str() }))
+			loadUrl({ "https://github.com/thatboy-echo" });
 
 		configFile.close();
 	}
 	else
-		desktopWebEngineView.load(QUrl("https://github.com/thatboy-echo"));
+		loadUrl({ "https://github.com/thatboy-echo" });
+}
+
+bool WallpaperEngineClient::loadUrl(QUrl url)
+{
+	if (url.isValid())
+	{
+		desktopWebEngineView.load(url);
+
+		QFile configFile{ "wallpaper.json" };
+		if (configFile.open(QFile::WriteOnly))
+		{
+			nlohmann::json j;
+			j["url"] = desktopWebEngineView.url().toString().toStdString();
+			configFile.write(QByteArray::fromStdString(j.dump()));
+			configFile.close();
+		}
+	}
+
+	return url.isValid();
+}
+
+void WallpaperEngineClient::setAutoRun(bool isAutoRun)
+{
+	const QString application_name = QApplication::applicationName();
+	QSettings* settings = new QSettings(R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)", QSettings::NativeFormat);
+	if (isAutoRun)
+		settings->setValue(application_name, QApplication::applicationFilePath().replace("/", "\\"));
+	else
+		settings->remove(application_name);
+}
+
+bool WallpaperEngineClient::autoRun()
+{
+	const QString application_name = QApplication::applicationName();
+	QSettings* settings = new QSettings(R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)", QSettings::NativeFormat);
+	return settings->contains(application_name) && settings->value(application_name) == QApplication::applicationFilePath().replace("/", "\\");
 }

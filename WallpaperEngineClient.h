@@ -15,4 +15,7 @@ public:
 public:
 	QSystemTrayIcon sysTrayIcon{ this };
 	QWebEngineView desktopWebEngineView{ nullptr };
+	bool loadUrl(QUrl url);
+	static void setAutoRun(bool);
+	static bool autoRun();
 };
