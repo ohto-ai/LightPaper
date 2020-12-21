@@ -38,19 +38,17 @@ HWND getWorkerW() {
 WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	: QWidget(parent)
 {
-	setStyleSheet(R"(
-*{
-	font-family:  "Arial", "Segoe UI", "黑体", "等线";
-	color: white;
-	background:rgb(50, 50, 50);
-})");
+	QFile qssFile{ ":/WallpaperEngineClient/.qss" };
+	qssFile.open(QFile::ReadOnly);
+	setStyleSheet(qssFile.readAll());
+	qssFile.close();
 
 #ifndef _DEBUG
 	qputenv("QTWEBENGINEPROCESS_PATH", "WallpaperEngineInstance.exe");
 #endif
 
 	sysTrayIcon.setIcon(QIcon(":WallpaperEngineClient/icons/icons8-wallpaper-engine-96.png"));
-	sysTrayIcon.setToolTip("WallpaperEngineClient");
+	sysTrayIcon.setToolTip("Wallpaper Engine Client");
 
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
