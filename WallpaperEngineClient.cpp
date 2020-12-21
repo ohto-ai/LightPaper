@@ -45,7 +45,9 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	background:rgb(50, 50, 50);
 })");
 
+#ifndef _DEBUG
 	qputenv("QTWEBENGINEPROCESS_PATH", "WallpaperEngineInstance.exe");
+#endif
 
 	sysTrayIcon.setIcon(QIcon(":WallpaperEngineClient/icons/icons8-wallpaper-engine-96.png"));
 	sysTrayIcon.setToolTip("WallpaperEngineClient");
@@ -91,10 +93,11 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	QFile configFile{ "wallpaper.json" };
 	if (configFile.open(QFile::ReadOnly))
 	{
-		if (!loadUrl({ nlohmann::json::parse(configFile.readAll().constData())["url"].get<std::string>().c_str() }))
+		QUrl url{ nlohmann::json::parse(configFile.readAll().constData())["url"].get<std::string>().c_str() };
+		configFile.close();
+		if (!loadUrl(url))
 			loadUrl({ "https://github.com/thatboy-echo" });
 
-		configFile.close();
 	}
 	else
 		loadUrl({ "https://github.com/thatboy-echo" });
@@ -110,7 +113,7 @@ bool WallpaperEngineClient::loadUrl(QUrl url)
 		if (configFile.open(QFile::WriteOnly))
 		{
 			nlohmann::json j;
-			j["url"] = desktopWebEngineView.url().toString().toStdString();
+			j["url"] = url.toString().toStdString();
 			configFile.write(QByteArray::fromStdString(j.dump()));
 			configFile.close();
 		}
