@@ -2,11 +2,11 @@
 
 #include "WallpaperEngineClient.h"
 
-#include <fstream>
 #include <QWebEngineProfile>
 #include <QSettings>
 #include <QFileDialog>
 #include <QMenu>
+#include <QTimer>
 #include <QDesktopWidget>
 #include <QApplication>
 #include <QClipboard>
@@ -14,57 +14,55 @@
 #include <Windows.h>
 #include <json.hpp>
 
-
-static HWND handleWorkerW = nullptr;
-inline BOOL CALLBACK enumWindowsProc(_In_ HWND tophandle, _In_ LPARAM topparamhandle)
+namespace workerW
 {
-	if (FindWindowEx(tophandle, nullptr
-		, TEXT("SHELLDLL_DefView"), nullptr) != nullptr)
-		handleWorkerW = FindWindowEx(nullptr, tophandle
-			, TEXT("WorkerW"), nullptr);
-	return TRUE;
+	inline BOOL CALLBACK enumWorkWProc(_In_ HWND topHandle, _In_ LPARAM handleWorkerW)
+	{
+		if (FindWindowEx(topHandle, nullptr
+			, TEXT("SHELLDLL_DefView"), nullptr) != nullptr)
+			*reinterpret_cast<HWND*>(handleWorkerW) = FindWindowEx(nullptr, topHandle
+				, TEXT("WorkerW"), nullptr);
+		return TRUE;
+	}
+	HWND getWorkerW() {
+		int result;
+		const HWND handleWorkerW = FindWindow(TEXT("Progman"), nullptr);
+		if (!handleWorkerW)
+			return nullptr;
+		SendMessageTimeout(handleWorkerW, 0x052c, 0, 0
+			, SMTO_NORMAL, 0x3e8, reinterpret_cast<PDWORD_PTR>(&result));
+		HWND handleWorkerWOld = nullptr;
+		EnumWindows(enumWorkWProc, reinterpret_cast<LPARAM>(&handleWorkerWOld));
+		if (handleWorkerWOld)
+			ShowWindow(handleWorkerWOld, SW_HIDE);
+		return handleWorkerW;
+	}
 }
 
-HWND getWorkerW() {
-	int result;
-	HWND handleProgmanWindow = FindWindow(TEXT("Progman"), nullptr);
-	SendMessageTimeout(handleProgmanWindow, 0x052c, 0, 0
-		, SMTO_NORMAL, 0x3e8, reinterpret_cast<PDWORD_PTR>(&result));
-	EnumWindows(enumWindowsProc, 0);
-	ShowWindow(handleWorkerW, SW_HIDE);
-	return handleProgmanWindow;
-}
-
-WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
-	: QWidget(parent)
+void WallpaperEngineClient::setUpSysTrayIcon()
 {
-	QFile qssFile{ ":/WallpaperEngineClient/.qss" };
-	qssFile.open(QFile::ReadOnly);
-	setStyleSheet(qssFile.readAll());
-	qssFile.close();
-
-#ifndef _DEBUG
-	qputenv("QTWEBENGINEPROCESS_PATH", "WallpaperEngineInstance.exe");
-#endif
-
 	sysTrayIcon.setIcon(QIcon(":WallpaperEngineClient/icons/icons8-wallpaper-engine-96.png"));
 	sysTrayIcon.setToolTip("Wallpaper Engine Client");
 
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
 		{
-			loadUrl({ QFileDialog::getOpenFileName(this) });
+			loadUrl(QUrl::fromLocalFile(QFileDialog::getOpenFileName(this)));
 		});
 
 	mMenu->addAction("粘贴地址", [&]
 		{
-			loadUrl({ QApplication::clipboard()->text() });
+			const auto clipboardUrlText{ QApplication::clipboard()->text() };
+			if (!QRegExp{ R"([a-zA-Z]:.*)" }.exactMatch(clipboardUrlText))
+				loadUrl(clipboardUrlText);
 		});
 
 	mMenu->addAction("刷新壁纸", &desktopWebEngineView, &QWebEngineView::reload);
+	
+	mMenu->addAction("重新加载", this, &WallpaperEngineClient::bindToWorkW);
 
 	auto autoRunAction = new QAction("开机启动", this);
-	mMenu->addAction(autoRunAction);
+	mMenu->QWidget::addAction(autoRunAction);
 	autoRunAction->setCheckable(true);
 	autoRunAction->setChecked(autoRun());
 	connect(autoRunAction, &QAction::toggled, &WallpaperEngineClient::setAutoRun);
@@ -76,44 +74,65 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 
 	sysTrayIcon.setContextMenu(mMenu);
 	sysTrayIcon.show();
-
-	static HWND desktopWebEngineViewId;
-	desktopWebEngineViewId = reinterpret_cast<HWND>(desktopWebEngineView.winId());
-	SetParent(desktopWebEngineViewId, getWorkerW());
-	SetWindowPos(desktopWebEngineViewId, HWND_TOP, 0, 0, 0, 0
-		, WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOACTIVATE);
-
-	desktopWebEngineView.move(QApplication::desktop()->pos());
-	desktopWebEngineView.resize(QApplication::desktop()->size());
-	desktopWebEngineView.showFullScreen();
-	QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
-
-	QFile configFile{ "wallpaper.json" };
-	if (configFile.open(QFile::ReadOnly))
-	{
-		QUrl url{ nlohmann::json::parse(configFile.readAll().constData())["url"].get<std::string>().c_str() };
-		configFile.close();
-		if (!loadUrl(url))
-			loadUrl({ "https://github.com/thatboy-echo" });
-
-	}
-	else
-		loadUrl({ "https://github.com/thatboy-echo" });
 }
 
-bool WallpaperEngineClient::loadUrl(QUrl url)
+void WallpaperEngineClient::setUpUi()
+{
+	QFile qssFile{ ":/WallpaperEngineClient/.qss" };
+	qssFile.open(QFile::ReadOnly);
+	setStyleSheet(qssFile.readAll());
+	qssFile.close();
+}
+
+void WallpaperEngineClient::bindToWorkW()
+{
+	const auto desktopWebEngineViewId{ reinterpret_cast<HWND>(desktopWebEngineView.winId()) };
+	SetParent(desktopWebEngineViewId, workerW::getWorkerW());
+	SetWindowPos(desktopWebEngineViewId, HWND_TOP, 0, 0, 0, 0
+		, WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOACTIVATE);
+	desktopWebEngineView.showFullScreen();
+}
+
+WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
+	: QWidget(parent)
+{
+	setUpUi();
+	setUpSysTrayIcon();
+
+	if (QApplication::arguments().contains("/onboot"))
+		QTimer::singleShot(5000, this, &WallpaperEngineClient::bindToWorkW);
+	else
+		bindToWorkW();
+
+	QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
+
+	connect(QApplication::desktop(), &QDesktopWidget::resized, this, &WallpaperEngineClient::bindToWorkW);
+
+	if (settingFile.open(QFile::ReadOnly))
+	{
+		const QUrl url{ nlohmann::json::parse(settingFile.readAll().constData())["url"].get<std::string>().c_str() };
+		settingFile.close();
+		if (!loadUrl(url))
+			loadUrl(defaultWallPaperUrl());
+	}
+	else
+		loadUrl(defaultWallPaperUrl());
+}
+
+bool WallpaperEngineClient::loadUrl(const QUrl& url)
 {
 	if (url.isValid())
 	{
+		if (url.isLocalFile() && !QFile::exists(url.toLocalFile()))
+			return false;
 		desktopWebEngineView.load(url);
 
-		QFile configFile{ "wallpaper.json" };
-		if (configFile.open(QFile::WriteOnly))
+		if (settingFile.open(QFile::WriteOnly))
 		{
 			nlohmann::json j;
 			j["url"] = url.toString().toStdString();
-			configFile.write(QByteArray::fromStdString(j.dump()));
-			configFile.close();
+			settingFile.write(QByteArray::fromStdString(j.dump()));
+			settingFile.close();
 		}
 	}
 
@@ -123,16 +142,34 @@ bool WallpaperEngineClient::loadUrl(QUrl url)
 void WallpaperEngineClient::setAutoRun(bool isAutoRun)
 {
 	const QString application_name = QApplication::applicationName();
-	QSettings* settings = new QSettings(R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)", QSettings::NativeFormat);
 	if (isAutoRun)
-		settings->setValue(application_name, QApplication::applicationFilePath().replace("/", "\\"));
+		bootSetting->setValue(application_name, QString(R"(%1 %2)").arg(QApplication::applicationFilePath().replace("/", "\\"), "/onboot"));
 	else
-		settings->remove(application_name);
+		bootSetting->remove(application_name);
 }
 
 bool WallpaperEngineClient::autoRun()
 {
-	const QString application_name = QApplication::applicationName();
-	QSettings* settings = new QSettings(R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)", QSettings::NativeFormat);
-	return settings->contains(application_name) && settings->value(application_name) == QApplication::applicationFilePath().replace("/", "\\");
+	return bootSetting->contains(QApplication::applicationName());
+}
+
+QUrl WallpaperEngineClient::defaultWallPaperUrl()
+{
+	QFile takanshiRikkaFile{ QApplication::applicationDirPath() + "/content/Takanashi_Rikka.gif" };
+	if (!takanshiRikkaFile.exists())
+	{
+		QFile takanshiRikkaRC{ ":/WallpaperEngineClient/content/Takanashi_Rikka.gif" };
+		takanshiRikkaRC.open(QFile::ReadOnly);
+
+		const QDir takanshiRikkaDir{ QApplication::applicationDirPath() };
+		takanshiRikkaDir.mkpath({ QFileInfo{ takanshiRikkaFile.fileName() }.path() });
+
+		if (takanshiRikkaFile.open(QFile::WriteOnly))
+		{
+			takanshiRikkaFile.write(takanshiRikkaRC.readAll());
+			takanshiRikkaFile.close();
+		}
+		takanshiRikkaRC.close();
+	}
+	return QUrl::fromLocalFile(takanshiRikkaFile.fileName());
 }

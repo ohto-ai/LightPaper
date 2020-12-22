@@ -4,10 +4,13 @@
 #include "SingleApplication.h"
 #include <QMessageBox>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    SingleApplication a(argc, argv);
+	SingleApplication a(argc, argv);
 
+#ifndef _DEBUG
+	qputenv("QTWEBENGINEPROCESS_PATH", "WallpaperEngineInstance.exe");
+#endif
 	if (!a.isRunning())
 	{
 		WallpaperEngineClient w;
