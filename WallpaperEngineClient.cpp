@@ -5,12 +5,9 @@
 #include <QWebEngineProfile>
 #include <QFileDialog>
 #include <QMenu>
-#include <QTimer>
-#include <QScreen>
 #include <QApplication>
 #include <QClipboard>
-#include <QWebEngineSettings>
-#include <Windows.h>
+#include <QCloseEvent>
 #include <json.hpp>
 
 WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
@@ -32,7 +29,7 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	mMenu->addAction("浏览文件", [&]
 		{
 			desktopWebEngineView.load(QUrl::fromLocalFile(QFileDialog::getOpenFileName(this, ""
-				, desktopWebEngineView.url().isLocalFile()? desktopWebEngineView.url().toLocalFile(): ""
+				, desktopWebEngineView.url().isLocalFile() ? desktopWebEngineView.url().toLocalFile() : ""
 				, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)")));
 		});
 
@@ -51,11 +48,7 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	autoRunAction->setChecked(autoRun());
 	connect(autoRunAction, &QAction::toggled, &WallpaperEngineClient::setAutoRun);
 
-	mMenu->addAction("退出程序", [=]
-		{
-			desktopWebEngineView.close();
-			close();
-		});
+	mMenu->addAction("退出程序", this, &QWidget::close);
 
 	sysTrayIcon.setContextMenu(mMenu);
 	sysTrayIcon.show();
@@ -154,4 +147,8 @@ void WallpaperEngineClient::initWallpaperUrl()
 		desktopWebEngineView.load(defaultWallPaperUrl());
 }
 
-
+void WallpaperEngineClient::closeEvent(QCloseEvent* event)
+{
+	desktopWebEngineView.close();
+	event->accept();
+}
