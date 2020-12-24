@@ -10,6 +10,9 @@
     <ClCompile Include="SingleApplication.cpp">
       <Filter>Main\SingleApplication</Filter>
     </ClCompile>
+    <ClCompile Include="WallpaperEngineView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Main">
@@ -36,6 +39,9 @@
     <QtMoc Include="SingleApplication.h">
       <Filter>Main\SingleApplication</Filter>
     </QtMoc>
+    <QtMoc Include="WallpaperEngineView.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="WallpaperEngineClient.qrc">
@@ -47,9 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="resource1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

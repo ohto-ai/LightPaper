@@ -98,6 +98,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="WallpaperEngineView.cpp" />
     <QtRcc Include="WallpaperEngineClient.qrc" />
     <QtMoc Include="WallpaperEngineClient.h" />
     <ClCompile Include="SingleApplication.cpp" />
@@ -112,7 +113,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="resource.h" />
-    <ClInclude Include="resource1.h" />
+    <QtMoc Include="WallpaperEngineView.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Wallpaper Engine Client.rc" />

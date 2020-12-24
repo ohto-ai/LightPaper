@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QSettings>
 #include <QSystemTrayIcon>
-#include <QWebEngineView>
+#include "WallpaperEngineView.h"
 
 class QSystemTrayIcon;
 
@@ -12,19 +12,16 @@ class WallpaperEngineClient
 	: public QWidget
 {
 	Q_OBJECT
-
 public:
 	void setUpSysTrayIcon();
 	void setUpUi();
-	bool bindToWorkW();
 	void setUpLoadSignals();
 	void setUpBindSignals();
 	void initWallpaperUrl();
-	void startupComponents();
 	WallpaperEngineClient(QWidget* parent = Q_NULLPTR);
 public:
 	QSystemTrayIcon sysTrayIcon{ this };
-	QWebEngineView desktopWebEngineView{ nullptr };
+	WallpaperEngineView desktopWebEngineView{ nullptr };
 	static void setAutoRun(bool);
 	static bool autoRun();
 	QFile settingFile{ "wallpaper.json" };
@@ -33,7 +30,4 @@ public:
 		R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)"
 		, QSettings::NativeFormat, qApp} };
 
-signals:
-	void workerWBindedFailed();
-	void workerWBindedSuccessed();
 };

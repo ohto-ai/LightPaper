@@ -3,7 +3,6 @@
 #include "WallpaperEngineClient.h"
 
 #include <QWebEngineProfile>
-#include <QSettings>
 #include <QFileDialog>
 #include <QMenu>
 #include <QTimer>
@@ -14,27 +13,6 @@
 #include <Windows.h>
 #include <json.hpp>
 
-namespace workerW
-{
-	void splitOutWorkerW();
-	void destroyWorkerW();
-	HWND getWorkerW();
-}
-
-void WallpaperEngineClient::startupComponents()
-{
-	// 开启拓展功能
-	desktopWebEngineView.settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
-
-	workerW::splitOutWorkerW();
-	if (!bindToWorkW())
-	{
-		workerW::destroyWorkerW();
-		workerW::splitOutWorkerW();
-		bindToWorkW();
-	}
-}
-
 WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	: QWidget(parent)
 {
@@ -42,7 +20,6 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	setUpSysTrayIcon();
 	setUpBindSignals();
 	setUpLoadSignals();
-	startupComponents();
 	initWallpaperUrl();
 }
 
@@ -54,12 +31,9 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
 		{
-			QString dir;
-
-			if (desktopWebEngineView.url().isLocalFile())
-				dir = desktopWebEngineView.url().path();
 			desktopWebEngineView.load(QUrl::fromLocalFile(QFileDialog::getOpenFileName(this, ""
-				, dir, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)")));
+				, desktopWebEngineView.url().isLocalFile()? desktopWebEngineView.url().toLocalFile(): ""
+				, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)")));
 		});
 
 	mMenu->addAction("粘贴地址", [&]
@@ -79,8 +53,8 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 
 	mMenu->addAction("退出程序", [=]
 		{
-			workerW::destroyWorkerW();
-			qApp->quit();
+			desktopWebEngineView.close();
+			close();
 		});
 
 	sysTrayIcon.setContextMenu(mMenu);
@@ -93,20 +67,6 @@ void WallpaperEngineClient::setUpUi()
 	qssFile.open(QFile::ReadOnly);
 	setStyleSheet(qssFile.readAll());
 	qssFile.close();
-}
-
-bool WallpaperEngineClient::bindToWorkW()
-{
-	const auto handleWorkerW = workerW::getWorkerW();
-	if (!handleWorkerW)
-		return false;
-	const auto desktopWebEngineViewId{ reinterpret_cast<HWND>(desktopWebEngineView.winId()) };
-	SetParent(desktopWebEngineViewId, handleWorkerW);
-	SetWindowPos(desktopWebEngineViewId, HWND_TOP, 0, 0, 0, 0
-		, WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOACTIVATE);
-	desktopWebEngineView.showFullScreen();
-	emit workerWBindedSuccessed();
-	return true;
 }
 
 void WallpaperEngineClient::setAutoRun(bool isAutoRun)
@@ -149,6 +109,8 @@ void WallpaperEngineClient::setUpLoadSignals()
 	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success) {
 		if (!success)
 			sysTrayIcon.showMessage("壁纸加载失败", "请检查此链接或文件的可用性！", QSystemTrayIcon::MessageIcon::Warning);
+		else
+			sysTrayIcon.showMessage("壁纸加载成功", "坐和放宽！", QSystemTrayIcon::MessageIcon::Information);
 		});
 	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success) {
 		if (success && settingFile.open(QFile::WriteOnly))
@@ -163,11 +125,11 @@ void WallpaperEngineClient::setUpLoadSignals()
 
 void WallpaperEngineClient::setUpBindSignals()
 {
-	connect(this, &WallpaperEngineClient::workerWBindedSuccessed, [=] {
-		sysTrayIcon.showMessage("桌面绑定成功", "快来舔屏吧!", QSystemTrayIcon::MessageIcon::Information);
-		});
-	connect(this, &WallpaperEngineClient::workerWBindedFailed, [=] {
-		sysTrayIcon.showMessage("屏幕绑定失败", "你不爱我了，居然装着别的壁纸软件!", QSystemTrayIcon::MessageIcon::Critical);
+	connect(&desktopWebEngineView, &WallpaperEngineView::workerWBinded, [=](bool success) {
+		if (success)
+			sysTrayIcon.showMessage("桌面绑定成功", "快来舔屏吧!", QSystemTrayIcon::MessageIcon::Information);
+		else
+			sysTrayIcon.showMessage("屏幕绑定失败", "你不爱我了，居然装着别的壁纸软件!", QSystemTrayIcon::MessageIcon::Critical);
 		});
 }
 
@@ -186,32 +148,4 @@ void WallpaperEngineClient::initWallpaperUrl()
 		desktopWebEngineView.load(defaultWallPaperUrl());
 }
 
-void workerW::splitOutWorkerW()
-{
-	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
-	if (!handleProgmanWindow)
-		return;
-	DWORD_PTR result;
-	::SendMessageTimeout(handleProgmanWindow, 0x052c, 0, 0
-		, SMTO_NORMAL, 1000, &result);
-}
 
-void workerW::destroyWorkerW()
-{
-	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
-	if (!handleProgmanWindow)
-		return;
-	DWORD_PTR result;
-	::SendMessageTimeout(handleProgmanWindow, 0x052c, 1, 0
-		, SMTO_NORMAL, 1000, &result);
-}
-
-HWND workerW::getWorkerW() {
-	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
-	if (!handleProgmanWindow)
-		return nullptr;
-	HWND handleWorkerW = ::FindWindowEx(nullptr, nullptr, TEXT("WorkerW"), nullptr);
-	while (handleWorkerW && ::FindWindowEx(nullptr, handleWorkerW, nullptr, nullptr) != handleProgmanWindow)
-		handleWorkerW = ::FindWindowEx(nullptr, handleWorkerW, TEXT("WorkerW"), nullptr);
-	return handleWorkerW;
-}
