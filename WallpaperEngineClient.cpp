@@ -28,9 +28,11 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
 		{
-			desktopWebEngineView.load(QUrl::fromLocalFile(QFileDialog::getOpenFileName(this, ""
+			const auto path = QFileDialog::getOpenFileName(this, ""
 				, desktopWebEngineView.url().isLocalFile() ? desktopWebEngineView.url().toLocalFile() : ""
-				, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)")));
+				, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)");
+			if (!path.isEmpty())
+				desktopWebEngineView.load(QUrl::fromLocalFile(path));
 		});
 
 	mMenu->addAction("粘贴地址", [&]
