@@ -61,8 +61,8 @@ IDI_MAINICON            ICON                    "icons\\Wallpaper Engine Client.
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 1,0,1,0
+ PRODUCTVERSION 1,0,1,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -79,12 +79,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "thatboy"
             VALUE "FileDescription", "轻量级动态壁纸"
-            VALUE "FileVersion", "1.0.0.1"
+            VALUE "FileVersion", "1.0.1.0"
             VALUE "InternalName", "Wallpaper Engine Client Setup.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020"
             VALUE "OriginalFilename", "Wallpaper Engine Client.exe"
-            VALUE "ProductName", "轻量级动态壁纸"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "ProductName", "Wallpaper Engine Client"
+            VALUE "ProductVersion", "1.0.1.0"
         END
     END
     BLOCK "VarFileInfo"

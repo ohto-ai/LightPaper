@@ -16,12 +16,15 @@ class WallpaperEngineClient
 public:
 	void setUpSysTrayIcon();
 	void setUpUi();
-	void bindToWorkW();
+	bool bindToWorkW();
+	void setUpLoadSignals();
+	void setUpBindSignals();
+	void initWallpaperUrl();
+	void startupComponents();
 	WallpaperEngineClient(QWidget* parent = Q_NULLPTR);
 public:
 	QSystemTrayIcon sysTrayIcon{ this };
 	QWebEngineView desktopWebEngineView{ nullptr };
-	bool loadUrl(const QUrl& url);
 	static void setAutoRun(bool);
 	static bool autoRun();
 	QFile settingFile{ "wallpaper.json" };
@@ -29,4 +32,8 @@ public:
 	inline static QSettings* bootSetting{ new QSettings{
 		R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)"
 		, QSettings::NativeFormat, qApp} };
+
+signals:
+	void workerWBindedFailed();
+	void workerWBindedSuccessed();
 };

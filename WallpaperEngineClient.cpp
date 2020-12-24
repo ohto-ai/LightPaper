@@ -7,7 +7,7 @@
 #include <QFileDialog>
 #include <QMenu>
 #include <QTimer>
-#include <QDesktopWidget>
+#include <QScreen>
 #include <QApplication>
 #include <QClipboard>
 #include <QWebEngineSettings>
@@ -16,27 +16,34 @@
 
 namespace workerW
 {
-	inline BOOL CALLBACK enumWorkWProc(_In_ HWND topHandle, _In_ LPARAM handleWorkerW)
+	void splitOutWorkerW();
+	void destroyWorkerW();
+	HWND getWorkerW();
+}
+
+void WallpaperEngineClient::startupComponents()
+{
+	// 开启拓展功能
+	desktopWebEngineView.settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
+
+	workerW::splitOutWorkerW();
+	if (!bindToWorkW())
 	{
-		if (FindWindowEx(topHandle, nullptr
-			, TEXT("SHELLDLL_DefView"), nullptr) != nullptr)
-			*reinterpret_cast<HWND*>(handleWorkerW) = FindWindowEx(nullptr, topHandle
-				, TEXT("WorkerW"), nullptr);
-		return TRUE;
+		workerW::destroyWorkerW();
+		workerW::splitOutWorkerW();
+		bindToWorkW();
 	}
-	HWND getWorkerW() {
-		int result;
-		const HWND handleWorkerW = FindWindow(TEXT("Progman"), nullptr);
-		if (!handleWorkerW)
-			return nullptr;
-		SendMessageTimeout(handleWorkerW, 0x052c, 0, 0
-			, SMTO_NORMAL, 0x3e8, reinterpret_cast<PDWORD_PTR>(&result));
-		HWND handleWorkerWOld = nullptr;
-		EnumWindows(enumWorkWProc, reinterpret_cast<LPARAM>(&handleWorkerWOld));
-		if (handleWorkerWOld)
-			ShowWindow(handleWorkerWOld, SW_HIDE);
-		return handleWorkerW;
-	}
+}
+
+WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
+	: QWidget(parent)
+{
+	setUpUi();
+	setUpSysTrayIcon();
+	setUpBindSignals();
+	setUpLoadSignals();
+	startupComponents();
+	initWallpaperUrl();
 }
 
 void WallpaperEngineClient::setUpSysTrayIcon()
@@ -47,19 +54,22 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
 		{
-			loadUrl(QUrl::fromLocalFile(QFileDialog::getOpenFileName(this)));
+			QString dir;
+
+			if (desktopWebEngineView.url().isLocalFile())
+				dir = desktopWebEngineView.url().path();
+			desktopWebEngineView.load(QUrl::fromLocalFile(QFileDialog::getOpenFileName(this, ""
+				, dir, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)")));
 		});
 
 	mMenu->addAction("粘贴地址", [&]
 		{
 			const auto clipboardUrlText{ QApplication::clipboard()->text() };
 			if (!QRegExp{ R"([a-zA-Z]:.*)" }.exactMatch(clipboardUrlText))
-				loadUrl(clipboardUrlText);
+				desktopWebEngineView.load(clipboardUrlText);
 		});
 
 	mMenu->addAction("刷新壁纸", &desktopWebEngineView, &QWebEngineView::reload);
-	
-	mMenu->addAction("重新加载", this, &WallpaperEngineClient::bindToWorkW);
 
 	auto autoRunAction = new QAction("开机启动", this);
 	mMenu->QWidget::addAction(autoRunAction);
@@ -69,6 +79,7 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 
 	mMenu->addAction("退出程序", [=]
 		{
+			workerW::destroyWorkerW();
 			qApp->quit();
 		});
 
@@ -84,59 +95,18 @@ void WallpaperEngineClient::setUpUi()
 	qssFile.close();
 }
 
-void WallpaperEngineClient::bindToWorkW()
+bool WallpaperEngineClient::bindToWorkW()
 {
+	const auto handleWorkerW = workerW::getWorkerW();
+	if (!handleWorkerW)
+		return false;
 	const auto desktopWebEngineViewId{ reinterpret_cast<HWND>(desktopWebEngineView.winId()) };
-	SetParent(desktopWebEngineViewId, workerW::getWorkerW());
+	SetParent(desktopWebEngineViewId, handleWorkerW);
 	SetWindowPos(desktopWebEngineViewId, HWND_TOP, 0, 0, 0, 0
 		, WS_EX_LEFT | WS_EX_LTRREADING | WS_EX_RIGHTSCROLLBAR | WS_EX_NOACTIVATE);
 	desktopWebEngineView.showFullScreen();
-}
-
-WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
-	: QWidget(parent)
-{
-	setUpUi();
-	setUpSysTrayIcon();
-
-	if (QApplication::arguments().contains("/onboot"))
-		QTimer::singleShot(5000, this, &WallpaperEngineClient::bindToWorkW);
-	else
-		bindToWorkW();
-
-	QWebEngineSettings::globalSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
-
-	connect(QApplication::desktop(), &QDesktopWidget::resized, this, &WallpaperEngineClient::bindToWorkW);
-
-	if (settingFile.open(QFile::ReadOnly))
-	{
-		const QUrl url{ nlohmann::json::parse(settingFile.readAll().constData())["url"].get<std::string>().c_str() };
-		settingFile.close();
-		if (!loadUrl(url))
-			loadUrl(defaultWallPaperUrl());
-	}
-	else
-		loadUrl(defaultWallPaperUrl());
-}
-
-bool WallpaperEngineClient::loadUrl(const QUrl& url)
-{
-	if (url.isValid())
-	{
-		if (url.isLocalFile() && !QFile::exists(url.toLocalFile()))
-			return false;
-		desktopWebEngineView.load(url);
-
-		if (settingFile.open(QFile::WriteOnly))
-		{
-			nlohmann::json j;
-			j["url"] = url.toString().toStdString();
-			settingFile.write(QByteArray::fromStdString(j.dump()));
-			settingFile.close();
-		}
-	}
-
-	return url.isValid();
+	emit workerWBindedSuccessed();
+	return true;
 }
 
 void WallpaperEngineClient::setAutoRun(bool isAutoRun)
@@ -172,4 +142,76 @@ QUrl WallpaperEngineClient::defaultWallPaperUrl()
 		takanshiRikkaRC.close();
 	}
 	return QUrl::fromLocalFile(takanshiRikkaFile.fileName());
+}
+
+void WallpaperEngineClient::setUpLoadSignals()
+{
+	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success) {
+		if (!success)
+			sysTrayIcon.showMessage("壁纸加载失败", "请检查此链接或文件的可用性！", QSystemTrayIcon::MessageIcon::Warning);
+		});
+	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success) {
+		if (success && settingFile.open(QFile::WriteOnly))
+		{
+			nlohmann::json j;
+			j["url"] = desktopWebEngineView.url().toString().toStdString();
+			settingFile.write(QByteArray::fromStdString(j.dump()));
+			settingFile.close();
+		}
+		});
+}
+
+void WallpaperEngineClient::setUpBindSignals()
+{
+	connect(this, &WallpaperEngineClient::workerWBindedSuccessed, [=] {
+		sysTrayIcon.showMessage("桌面绑定成功", "快来舔屏吧!", QSystemTrayIcon::MessageIcon::Information);
+		});
+	connect(this, &WallpaperEngineClient::workerWBindedFailed, [=] {
+		sysTrayIcon.showMessage("屏幕绑定失败", "你不爱我了，居然装着别的壁纸软件!", QSystemTrayIcon::MessageIcon::Critical);
+		});
+}
+
+void WallpaperEngineClient::initWallpaperUrl()
+{
+	if (settingFile.open(QFile::ReadOnly))
+	{
+		const QUrl url{ nlohmann::json::parse(settingFile.readAll().constData())["url"].get<std::string>().c_str() };
+		settingFile.close();
+		if (url.isValid())
+			desktopWebEngineView.load(url);
+		else
+			desktopWebEngineView.load(defaultWallPaperUrl());
+	}
+	else
+		desktopWebEngineView.load(defaultWallPaperUrl());
+}
+
+void workerW::splitOutWorkerW()
+{
+	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
+	if (!handleProgmanWindow)
+		return;
+	DWORD_PTR result;
+	::SendMessageTimeout(handleProgmanWindow, 0x052c, 0, 0
+		, SMTO_NORMAL, 1000, &result);
+}
+
+void workerW::destroyWorkerW()
+{
+	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
+	if (!handleProgmanWindow)
+		return;
+	DWORD_PTR result;
+	::SendMessageTimeout(handleProgmanWindow, 0x052c, 1, 0
+		, SMTO_NORMAL, 1000, &result);
+}
+
+HWND workerW::getWorkerW() {
+	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
+	if (!handleProgmanWindow)
+		return nullptr;
+	HWND handleWorkerW = ::FindWindowEx(nullptr, nullptr, TEXT("WorkerW"), nullptr);
+	while (handleWorkerW && ::FindWindowEx(nullptr, handleWorkerW, nullptr, nullptr) != handleProgmanWindow)
+		handleWorkerW = ::FindWindowEx(nullptr, handleWorkerW, TEXT("WorkerW"), nullptr);
+	return handleWorkerW;
 }

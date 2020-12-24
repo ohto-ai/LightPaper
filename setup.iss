@@ -2,7 +2,7 @@
 ; 有关创建 Inno Setup 脚本文件的详细资料请查阅帮助文档！
 
 #define MyAppName "Wallpaper Engine Client"
-#define MyAppVersion "1.0.0.1"
+#define MyAppVersion "1.0.1.0"
 #define MyAppPublisher "thatboy"
 #define MyAppURL "http://thatboy.info"
 #define MyAppExeName "Wallpaper Engine Client.exe"
