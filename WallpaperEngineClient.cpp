@@ -106,20 +106,26 @@ QUrl WallpaperEngineClient::defaultWallPaperUrl()
 
 void WallpaperEngineClient::setUpLoadSignals()
 {
-	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success) {
-		if (!success)
-			sysTrayIcon.showMessage("壁纸加载失败", "请检查此链接或文件的可用性！", QSystemTrayIcon::MessageIcon::Warning);
-		else
-			sysTrayIcon.showMessage("壁纸加载成功", "坐和放宽！", QSystemTrayIcon::MessageIcon::Information);
-		});
-	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success) {
-		if (success && settingFile.open(QFile::WriteOnly))
+	connect(&desktopWebEngineView, &QWebEngineView::loadStarted, [&]
 		{
-			nlohmann::json j;
-			j["url"] = desktopWebEngineView.url().toString().toStdString();
-			settingFile.write(QByteArray::fromStdString(j.dump()));
-			settingFile.close();
-		}
+			sysTrayIcon.showMessage("正在加载壁纸", "坐和放宽！", QSystemTrayIcon::MessageIcon::Information);
+		});
+	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success)
+		{
+			if (!success)
+				sysTrayIcon.showMessage("壁纸加载失败", "请检查此链接或文件的可用性！", QSystemTrayIcon::MessageIcon::Warning);
+			else
+				sysTrayIcon.showMessage("壁纸加载成功", "开始你的表演！", QSystemTrayIcon::MessageIcon::Information);
+		});
+	connect(&desktopWebEngineView, &QWebEngineView::loadFinished, [=](bool success)
+		{
+			if (success && settingFile.open(QFile::WriteOnly))
+			{
+				nlohmann::json j;
+				j["url"] = desktopWebEngineView.url().toString().toStdString();
+				settingFile.write(QByteArray::fromStdString(j.dump()));
+				settingFile.close();
+			}
 		});
 }
 
