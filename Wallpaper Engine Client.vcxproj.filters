@@ -11,7 +11,7 @@
       <Filter>Main\SingleApplication</Filter>
     </ClCompile>
     <ClCompile Include="WallpaperEngineView.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Main\WallpaperEngineView</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -31,6 +31,14 @@
     <Filter Include="Main\SingleApplication">
       <UniqueIdentifier>{4b041c0f-d4e5-47b1-a35e-df594cb4ad75}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Form Files">
+      <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
+      <Extensions>ui</Extensions>
+      <ParseFiles>true</ParseFiles>
+    </Filter>
+    <Filter Include="Main\WallpaperEngineView">
+      <UniqueIdentifier>{9ca8e0b3-b9e7-4ce3-8ed4-17014240d084}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="WallpaperEngineClient.h">
@@ -40,7 +48,7 @@
       <Filter>Main\SingleApplication</Filter>
     </QtMoc>
     <QtMoc Include="WallpaperEngineView.h">
-      <Filter>Header Files</Filter>
+      <Filter>Main\WallpaperEngineView</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

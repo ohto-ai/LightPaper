@@ -16,7 +16,7 @@ WallpaperEngineView::WallpaperEngineView(QWidget* parent)
 {
 	settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
 	workerW::splitOutWorkerW();
-	emit workerWBinded(bindToWorkW());
+	emit AttachedWorkerW(bindToWorkW());
 }
 
 bool WallpaperEngineView::bindToWorkW()
@@ -47,11 +47,11 @@ HWND workerW::handleProgramManagerWindow()
 
 void workerW::splitOutWorkerW()
 {
-	const HWND handleProgmanWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
-	if (!handleProgmanWindow)
+	const HWND handleProgramWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
+	if (!handleProgramWindow)
 		return;
 	DWORD_PTR result;
-	::SendMessageTimeout(handleProgmanWindow, 0x052c, 0, 0
+	::SendMessageTimeout(handleProgramWindow, 0x052c, 0, 0
 		, SMTO_NORMAL, 1000, &result);
 }
 

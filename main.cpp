@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 #ifndef _DEBUG
 	qputenv("QTWEBENGINEPROCESS_PATH", "WallpaperEngineInstance.exe");
 #endif
-	if (!a.isRunning())
+	if (!a.instanceRunning())
 	{
 		WallpaperEngineClient w;
 		return a.exec();

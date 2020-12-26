@@ -8,8 +8,8 @@ class WallpaperEngineView : public QWebEngineView
 
 public:
 	WallpaperEngineView(QWidget* parent);
-	~WallpaperEngineView();
+	virtual ~WallpaperEngineView();
 	bool bindToWorkW();
 signals:
-	void workerWBinded(bool);
+	void AttachedWorkerW(bool);
 };

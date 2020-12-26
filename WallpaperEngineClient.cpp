@@ -126,7 +126,7 @@ void WallpaperEngineClient::setUpLoadSignals()
 
 void WallpaperEngineClient::setUpBindSignals()
 {
-	connect(&desktopWebEngineView, &WallpaperEngineView::workerWBinded, [=](bool success) {
+	connect(&desktopWebEngineView, &WallpaperEngineView::AttachedWorkerW, [=](bool success) {
 		if (success)
 			sysTrayIcon.showMessage("桌面绑定成功", "快来舔屏吧!", QSystemTrayIcon::MessageIcon::Information);
 		else
