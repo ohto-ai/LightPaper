@@ -8,7 +8,7 @@ namespace workerW
 	void splitOutWorkerW();
 	void destroyWorkerW();
 	HWND getWorkerW();
-	inline BOOL CALLBACK EnumWorkWProc(_In_ HWND, _In_ LPARAM);
+	inline BOOL CALLBACK enumWorkWProc(_In_ HWND, _In_ LPARAM);
 }
 
 WallpaperEngineView::WallpaperEngineView(QWidget* parent)
@@ -16,10 +16,10 @@ WallpaperEngineView::WallpaperEngineView(QWidget* parent)
 {
 	settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
 	workerW::splitOutWorkerW();
-	emit AttachedWorkerW(bindToWorkW());
+	emit workerWAttached(attachWorkW());
 }
 
-bool WallpaperEngineView::bindToWorkW()
+bool WallpaperEngineView::attachWorkW()
 {
 	const auto handleWorkerW = workerW::getWorkerW();
 	if (!handleWorkerW)
@@ -47,11 +47,8 @@ HWND workerW::handleProgramManagerWindow()
 
 void workerW::splitOutWorkerW()
 {
-	const HWND handleProgramWindow = ::FindWindow(TEXT("Progman"), TEXT("Program Manager"));
-	if (!handleProgramWindow)
-		return;
 	DWORD_PTR result;
-	::SendMessageTimeout(handleProgramWindow, 0x052c, 0, 0
+	::SendMessageTimeout(handleProgramManagerWindow(), 0x052c, 0, 0
 		, SMTO_NORMAL, 1000, &result);
 }
 
@@ -62,7 +59,7 @@ void workerW::destroyWorkerW()
 		, SMTO_NORMAL, 1000, &result);
 }
 
-inline BOOL CALLBACK workerW::EnumWorkWProc(_In_ HWND handleTopWindow, _In_ LPARAM lpHandleWorkerW)
+inline BOOL CALLBACK workerW::enumWorkWProc(_In_ HWND handleTopWindow, _In_ LPARAM lpHandleWorkerW)
 {
 	if (FindWindowEx(handleTopWindow, nullptr, TEXT("SHELLDLL_DefView"), nullptr) == nullptr)
 		return TRUE;
@@ -72,6 +69,6 @@ inline BOOL CALLBACK workerW::EnumWorkWProc(_In_ HWND handleTopWindow, _In_ LPAR
 
 HWND workerW::getWorkerW() {
 	HWND handleWorkerW{ nullptr };
-	EnumWindows(EnumWorkWProc, reinterpret_cast<LPARAM>(&handleWorkerW));
+	EnumWindows(enumWorkWProc, reinterpret_cast<LPARAM>(&handleWorkerW));
 	return handleWorkerW;
 }

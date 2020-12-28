@@ -30,7 +30,7 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 		{
 			const auto path = QFileDialog::getOpenFileName(this, ""
 				, desktopWebEngineView.url().isLocalFile() ? desktopWebEngineView.url().toLocalFile() : ""
-				, "图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)");
+				, "支持的文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico;*.htm;*.html);;图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)");
 			if (!path.isEmpty())
 				desktopWebEngineView.load(QUrl::fromLocalFile(path));
 		});
@@ -126,7 +126,7 @@ void WallpaperEngineClient::setUpLoadSignals()
 
 void WallpaperEngineClient::setUpBindSignals()
 {
-	connect(&desktopWebEngineView, &WallpaperEngineView::AttachedWorkerW, [=](bool success) {
+	connect(&desktopWebEngineView, &WallpaperEngineView::workerWAttached, [=](bool success) {
 		if (success)
 			sysTrayIcon.showMessage("桌面绑定成功", "快来舔屏吧!", QSystemTrayIcon::MessageIcon::Information);
 		else
