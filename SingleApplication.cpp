@@ -1,4 +1,4 @@
-#include "SingleApplication.h"
+ï»¿#include "SingleApplication.h"
 #include <QtNetwork/QLocalSocket>
 #include <QtNetwork/QLocalServer>
 #include <QFileInfo>
@@ -12,13 +12,13 @@ SingleApplication::SingleApplication(int& argc, char** argv)
 	initLocalConnection();
 }
 
-// ÊµÀıÒÑÔÚÔËĞĞ
+// å®ä¾‹å·²åœ¨è¿è¡Œ
 bool SingleApplication::instanceRunning() const
 {
 	return isInstanceRunning;
 }
 
-// Í¨¹ısocketÍ¨Ñ¶ÊµÏÖ³ÌĞòµ¥ÊµÀıÔËĞĞ£¬¼àÌıµ½ĞÂµÄÁ¬½ÓÊ±´¥·¢¸Ãº¯Êı
+// é€šè¿‡socketé€šè®¯å®ç°ç¨‹åºå•å®ä¾‹è¿è¡Œï¼Œç›‘å¬åˆ°æ–°çš„è¿æ¥æ—¶è§¦å‘è¯¥å‡½æ•°
 void SingleApplication::receiveNewLocalConnection()
 {
 	QLocalSocket* socket = localServer->nextPendingConnection();
@@ -30,7 +30,7 @@ void SingleApplication::receiveNewLocalConnection()
 	socket->deleteLater();
 }
 
-// Í¨¹ısocketÍ¨Ñ¶ÊµÏÖ³ÌĞòµ¥ÊµÀıÔËĞĞ£¬³õÊ¼»¯±¾µØÁ¬½Ó£¬Èç¹ûÁ¬½Ó²»ÉÏserver£¬Ôò´´½¨£¬·ñÔòÍË³ö
+// é€šè¿‡socketé€šè®¯å®ç°ç¨‹åºå•å®ä¾‹è¿è¡Œï¼Œåˆå§‹åŒ–æœ¬åœ°è¿æ¥ï¼Œå¦‚æœè¿æ¥ä¸ä¸Šserverï¼Œåˆ™åˆ›å»ºï¼Œå¦åˆ™é€€å‡º
 void SingleApplication::initLocalConnection()
 {
 	isInstanceRunning = false;
@@ -39,21 +39,22 @@ void SingleApplication::initLocalConnection()
 	if (socket.waitForConnected(500))
 	{
 		isInstanceRunning = true;
-		// ½«Æô¶¯²ÎÊı·¢ËÍµ½·şÎñ¶Ë
+		// å°†å¯åŠ¨å‚æ•°å‘é€åˆ°æœåŠ¡ç«¯
 		QTextStream stream(&socket);
 		stream << arguments().join(' ');
 		stream.flush();
 		socket.waitForBytesWritten();
 		return;
 	}
-	// Á¬½Ó²»ÉÏ·şÎñÆ÷£¬¾Í´´½¨Ò»¸ö
+	// è¿æ¥ä¸ä¸ŠæœåŠ¡å™¨ï¼Œå°±åˆ›å»ºä¸€ä¸ª
 	createLocalServer();
 }
 
-// ´´½¨LocalServer
+// åˆ›å»ºLocalServer
 void SingleApplication::createLocalServer()
 {
-	localServer->deleteLater();
+	if (localServer != nullptr)
+		localServer->deleteLater();
 	localServer = new QLocalServer(this);
 	connect(localServer, &QLocalServer::newConnection, this, &SingleApplication::receiveNewLocalConnection);
 	if (!localServer->listen(serverName) && localServer->serverError() == QAbstractSocket::AddressInUseError)

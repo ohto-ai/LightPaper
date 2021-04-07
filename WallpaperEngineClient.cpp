@@ -28,11 +28,11 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
 		{
-			const auto path = QFileDialog::getOpenFileName(this, ""
+			if (const auto url = QFileDialog::getOpenFileUrl(this, ""
 				, desktopWebEngineView.url().isLocalFile() ? desktopWebEngineView.url().toLocalFile() : ""
 				, "支持的文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico;*.htm;*.html);;图像文件(*.jpg;*.jpeg;*.png;*.bmp;*.gif;*.webp;*.ico);;网页文件(*.htm;*.html);;所有文件(*.*)");
-			if (!path.isEmpty())
-				desktopWebEngineView.load(QUrl::fromLocalFile(path));
+				!url.isEmpty())
+				desktopWebEngineView.load(url);
 		});
 
 	mMenu->addAction("粘贴地址", [&]
@@ -48,7 +48,7 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	mMenu->QWidget::addAction(autoRunAction);
 	autoRunAction->setCheckable(true);
 	autoRunAction->setChecked(autoRun());
-	connect(autoRunAction, &QAction::toggled, &WallpaperEngineClient::setAutoRun);
+	connect(autoRunAction, &QAction::toggled, this, &WallpaperEngineClient::setAutoRun);
 
 	mMenu->addAction("退出程序", this, &QWidget::close);
 
@@ -101,7 +101,7 @@ QUrl WallpaperEngineClient::defaultWallPaperUrl()
 
 void WallpaperEngineClient::setUpLoadSignals()
 {
-	connect(&desktopWebEngineView, &QWebEngineView::loadStarted, [&]
+	connect(&desktopWebEngineView, &QWebEngineView::loadStarted, [=]
 		{
 			sysTrayIcon.showMessage("正在加载壁纸", "坐和放宽！", QSystemTrayIcon::MessageIcon::Information);
 		});

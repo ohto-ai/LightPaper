@@ -37,8 +37,8 @@ Name: "chinesesimp"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "E:\Visual Studio Application\Wallpaper Engine Client\x64\Release\Wallpaper Engine Client.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "E:\Visual Studio Application\Wallpaper Engine Client\x64\Package\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "E:\Visual Studio Application\Wallpaper Engine Client\Release\Wallpaper Engine Client.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "E:\Visual Studio Application\Wallpaper Engine Client\Package\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; 注意: 不要在任何共享系统文件上使用“Flags: ignoreversion”
 
 [Icons]

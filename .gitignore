@@ -354,5 +354,6 @@ MigrationBackup/
 
 # iss output
 Output/
+Package/
 wallpaper.json
 WallpaperEngineInstance.exe
