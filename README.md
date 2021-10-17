@@ -1,10 +1,6 @@
 <h1 align="center"><img src="icons/icons8-wallpaper-engine-64.png"> Light Paper <img src="https://avatars1.githubusercontent.com/u/46275725?s=60&u=015218e23b2de9165278766fe237a90055bbf9f6" style="border-radius:50%"></h1>
 <p align="center">轻量级动态桌面 </p>
 
-![Light Paper](icons/icons8-wallpaper-engine-512.png)
-
-
-
 ## 🎬Screenshots
 
 ![Engine](https://i.loli.net/2020/12/22/HinbZmfEPza4DKo.png)
