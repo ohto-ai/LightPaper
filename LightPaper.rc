@@ -13,7 +13,7 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// 中文(简体，中国) resources
+// 涓枃(绠�浣擄紝涓浗) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
 LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
@@ -51,7 +51,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_MAINICON            ICON                    "icons\\Wallpaper Engine Client.ico"
+IDI_MAINICON            ICON                    "icons\\LightPaper.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -59,8 +59,8 @@ IDI_MAINICON            ICON                    "icons\\Wallpaper Engine Client.
 //
 
 VS_VERSION_INFO VERSIONINFO
-FILEVERSION 1, 0, 1, 0
-PRODUCTVERSION 1, 0, 1, 0
+FILEVERSION 1, 1, 0, 0
+PRODUCTVERSION 1, 1, 0, 0
 FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
 FILEFLAGS 0x1L
@@ -75,14 +75,14 @@ BLOCK "StringFileInfo"
 BEGIN
 BLOCK "080404b0"
 BEGIN
-VALUE "CompanyName", "thatboy"
-VALUE "FileDescription", "轻量级动态壁纸"
-VALUE "FileVersion", "1.0.1.0"
-VALUE "InternalName", "Wallpaper Engine Client Setup.exe"
-VALUE "LegalCopyright", "Copyright (C) 2020"
-VALUE "OriginalFilename", "Wallpaper Engine Client.exe"
-VALUE "ProductName", "Wallpaper Engine Client"
-VALUE "ProductVersion", "1.0.1.0"
+VALUE "CompanyName", "ohtoai"
+VALUE "FileDescription", "Light Paper"
+VALUE "FileVersion", "1.1.0.0"
+VALUE "InternalName", "LightPaper.exe"
+VALUE "LegalCopyright", "Copyright (C) 2023"
+VALUE "OriginalFilename", "LightPaper.exe"
+VALUE "ProductName", "LightPaper"
+VALUE "ProductVersion", "1.1.0.0"
 END
 END
 BLOCK "VarFileInfo"
@@ -91,7 +91,7 @@ VALUE "Translation", 0x804, 1200
 END
 END
 
-#endif    // 中文(简体，中国) resources
+#endif    // 涓枃(绠�浣擄紝涓浗) resources
 /////////////////////////////////////////////////////////////////////////////
 
 #ifndef APSTUDIO_INVOKED
