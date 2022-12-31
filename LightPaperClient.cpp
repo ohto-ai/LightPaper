@@ -1,6 +1,6 @@
 ﻿#pragma execution_character_set("utf-8")
 
-#include "WallpaperEngineClient.h"
+#include "LightPaperClient.h"
 
 #include <QWebEngineProfile>
 #include <QFileDialog>
@@ -8,9 +8,9 @@
 #include <QApplication>
 #include <QClipboard>
 #include <QCloseEvent>
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
-WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
+LightPaperClient::LightPaperClient(QWidget* parent)
 	: QWidget(parent)
 {
 	setUpUi();
@@ -20,10 +20,10 @@ WallpaperEngineClient::WallpaperEngineClient(QWidget* parent)
 	initWallpaperUrl();
 }
 
-void WallpaperEngineClient::setUpSysTrayIcon()
+void LightPaperClient::setUpSysTrayIcon()
 {
-	sysTrayIcon.setIcon(QIcon(":WallpaperEngineClient/icons/icons8-wallpaper-engine-96.png"));
-	sysTrayIcon.setToolTip("Wallpaper Engine Client");
+	sysTrayIcon.setIcon(QIcon(":/LightPaperClient/icons/icons8-wallpaper-engine-96.png"));
+	sysTrayIcon.setToolTip("LightPaper");
 
 	auto mMenu = new QMenu{ this };
 	mMenu->addAction("浏览文件", [&]
@@ -48,7 +48,7 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	mMenu->QWidget::addAction(autoRunAction);
 	autoRunAction->setCheckable(true);
 	autoRunAction->setChecked(autoRun());
-	connect(autoRunAction, &QAction::toggled, this, &WallpaperEngineClient::setAutoRun);
+	connect(autoRunAction, &QAction::toggled, this, &LightPaperClient::setAutoRun);
 
 	mMenu->addAction("退出程序", this, &QWidget::close);
 
@@ -56,15 +56,15 @@ void WallpaperEngineClient::setUpSysTrayIcon()
 	sysTrayIcon.show();
 }
 
-void WallpaperEngineClient::setUpUi()
+void LightPaperClient::setUpUi()
 {
-	QFile qssFile{ ":/WallpaperEngineClient/.qss" };
+	QFile qssFile{ ":/LightPaperClient/.qss" };
 	qssFile.open(QFile::ReadOnly);
 	setStyleSheet(qssFile.readAll());
 	qssFile.close();
 }
 
-void WallpaperEngineClient::setAutoRun(bool isAutoRun)
+void LightPaperClient::setAutoRun(bool isAutoRun)
 {
 	const QString application_name = QApplication::applicationName();
 	if (isAutoRun)
@@ -73,17 +73,17 @@ void WallpaperEngineClient::setAutoRun(bool isAutoRun)
 		bootSetting->remove(application_name);
 }
 
-bool WallpaperEngineClient::autoRun()
+bool LightPaperClient::autoRun()
 {
 	return bootSetting->contains(QApplication::applicationName());
 }
 
-QUrl WallpaperEngineClient::defaultWallPaperUrl()
+QUrl LightPaperClient::defaultWallPaperUrl()
 {
 	QFile takanshiRikkaFile{ QApplication::applicationDirPath() + "/content/Takanashi_Rikka.gif" };
 	if (!takanshiRikkaFile.exists())
 	{
-		QFile takanshiRikkaRC{ ":/WallpaperEngineClient/content/Takanashi_Rikka.gif" };
+		QFile takanshiRikkaRC{ ":/LightPaperClient/content/Takanashi_Rikka.gif" };
 		takanshiRikkaRC.open(QFile::ReadOnly);
 
 		const QDir takanshiRikkaDir{ QApplication::applicationDirPath() };
@@ -99,7 +99,7 @@ QUrl WallpaperEngineClient::defaultWallPaperUrl()
 	return QUrl::fromLocalFile(takanshiRikkaFile.fileName());
 }
 
-void WallpaperEngineClient::setUpLoadSignals()
+void LightPaperClient::setUpLoadSignals()
 {
 	connect(&desktopWebEngineView, &QWebEngineView::loadStarted, [=]
 		{
@@ -124,7 +124,7 @@ void WallpaperEngineClient::setUpLoadSignals()
 		});
 }
 
-void WallpaperEngineClient::setUpBindSignals()
+void LightPaperClient::setUpBindSignals()
 {
 	connect(&desktopWebEngineView, &WallpaperEngineView::workerWAttached, [=](bool success) {
 		if (success)
@@ -134,7 +134,7 @@ void WallpaperEngineClient::setUpBindSignals()
 		});
 }
 
-void WallpaperEngineClient::initWallpaperUrl()
+void LightPaperClient::initWallpaperUrl()
 {
 	if (settingFile.open(QFile::ReadOnly))
 	{
@@ -149,7 +149,7 @@ void WallpaperEngineClient::initWallpaperUrl()
 		desktopWebEngineView.load(defaultWallPaperUrl());
 }
 
-void WallpaperEngineClient::closeEvent(QCloseEvent* event)
+void LightPaperClient::closeEvent(QCloseEvent* event)
 {
 	desktopWebEngineView.close();
 	event->accept();

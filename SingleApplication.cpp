@@ -7,18 +7,20 @@ SingleApplication::SingleApplication(int& argc, char** argv)
 	: QApplication{ argc, argv }
 	, isInstanceRunning{ false }
 	, localServer{ nullptr }
-	, serverName{ QFileInfo(applicationFilePath()).fileName() }
+	, serverName{ applicationFilePath() + "-mutex" }
 {
 	initLocalConnection();
 }
 
-// 实例已在运行
+// The instance is already running
 bool SingleApplication::instanceRunning() const
 {
 	return isInstanceRunning;
 }
 
-// 通过socket通讯实现程序单实例运行，监听到新的连接时触发该函数
+// Socket communication through the implementation of a single
+// instance of the program to run, listening to the new connection
+// when the function is triggered
 void SingleApplication::receiveNewLocalConnection()
 {
 	QLocalSocket* socket = localServer->nextPendingConnection();
@@ -26,11 +28,13 @@ void SingleApplication::receiveNewLocalConnection()
 		return;
 	socket->waitForReadyRead(1000);
 	QTextStream stream(socket);
-	emit newInstanceStartup(stream.readAll());
+	emit newInstanceStartup(stream.readAll().split('\n'));
 	socket->deleteLater();
 }
 
-// 通过socket通讯实现程序单实例运行，初始化本地连接，如果连接不上server，则创建，否则退出
+// Through socket communication to realize the single instance of
+// the program to run, initialize the local connection, if theconnection
+// is not connected to the server, then create, otherwise exit
 void SingleApplication::initLocalConnection()
 {
 	isInstanceRunning = false;
@@ -39,18 +43,17 @@ void SingleApplication::initLocalConnection()
 	if (socket.waitForConnected(500))
 	{
 		isInstanceRunning = true;
-		// 将启动参数发送到服务端
 		QTextStream stream(&socket);
-		stream << arguments().join(' ');
+		stream << arguments().join('\n');
 		stream.flush();
 		socket.waitForBytesWritten();
 		return;
 	}
-	// 连接不上服务器，就创建一个
+
 	createLocalServer();
 }
 
-// 创建LocalServer
+// Create LocalServer
 void SingleApplication::createLocalServer()
 {
 	if (localServer != nullptr)

@@ -8,7 +8,7 @@
 
 class QSystemTrayIcon;
 
-class WallpaperEngineClient
+class LightPaperClient
 	: public QWidget
 {
 	Q_OBJECT
@@ -19,7 +19,7 @@ public:
 	void setUpBindSignals();
 	void initWallpaperUrl();
 	void closeEvent(QCloseEvent* event) override;
-	WallpaperEngineClient(QWidget* parent = Q_NULLPTR);
+	LightPaperClient(QWidget* parent = Q_NULLPTR);
 private:
 	QSystemTrayIcon sysTrayIcon{ this };
 	WallpaperEngineView desktopWebEngineView{ nullptr };
@@ -27,7 +27,7 @@ private:
 	static void setAutoRun(bool);
 	static bool autoRun();
 	static QUrl defaultWallPaperUrl();
-	inline static QFile settingFile{ "wallpaper.json" };
+	inline static QFile settingFile{ QApplication::applicationDirPath() + "wallpaper.json" };
 	inline static QSettings* bootSetting{ new QSettings{
 		R"(HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run)"
 		, QSettings::NativeFormat, qApp} };

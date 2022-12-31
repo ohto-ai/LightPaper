@@ -1,8 +1,7 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ Éú³ÉµÄ°üº¬ÎÄ¼ş¡£
-// ¹© Wallpaper Engine Client.rc Ê¹ÓÃ
+// Microsoft Visual C++ ç”Ÿæˆçš„åŒ…å«æ–‡ä»¶ã€‚
+// ä¾› Wallpaper Engine Client.rc ä½¿ç”¨
 //
-#define IDI_ICON1                       101
 #define IDI_MAINICON                    101
 
 // Next default values for new objects
