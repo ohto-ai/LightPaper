@@ -18,7 +18,3 @@
 ## :bug:Bugs
 
 欢迎将 <del>feature</del> bug 提交issue，如果你有好的思路或者解决方案，感谢分享。
-已知<del>特性</del> Bug
-
-- [开机启动闪退](https://github.com/thatboy-echo/LightPaper/issues/1)
-- <del>切换桌面后桌面窗口图标消失</del> [已修复](https://github.com/thatboy-echo/LightPaper/commit/b86a4bd30728a3e879073ab73c08499fe4525a14)
