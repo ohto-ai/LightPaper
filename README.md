@@ -1,4 +1,4 @@
-<a href="https://github.com/Ohto-Ai/LightPaper/blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Ohto-Ai/LightPaper"></a>
+<a href="https://github.com/Ohto-Ai/LightPaper/blob/master/LICENSE"><img alt="GitHub license" src="https://img.shields.io/github/license/Ohto-Ai/LightPaper"></a>
 <a href="https://github.com/Ohto-Ai/LightPaper/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/Ohto-Ai/LightPaper"></a>
 <a href="https://github.com/Ohto-Ai/LightPaper/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/Ohto-Ai/LightPaper"></a>
 <a href="https://github.com/Ohto-Ai/LightPaper/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/Ohto-Ai/LightPaper"></a>
